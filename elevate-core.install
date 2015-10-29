@@ -1,0 +1,7 @@
+<?php
+    // Install for elevate-core.
+    
+    // hook_install function
+    function elevatecore_install() {
+        
+    }
