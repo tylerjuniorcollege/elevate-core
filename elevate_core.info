@@ -3,3 +3,5 @@ description = Main Functionality to access Ellusian's Elevate API. Required Modu
 core = 7.x
 
 dependencies[] = composer_manager
+
+files[] = elevate_core.module

@@ -8,4 +8,14 @@
      ***/
      
      
+    /**
+     * Implementing hook_help
+     **/
+    
+    function elevate_core_help($path, $arg) {
+        if($path == "admin/help#elevate_core") {
+            return t('Main Settings and Functionality to access Ellusian Elevate API.');
+        }
+    }
+    
     
