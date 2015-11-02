@@ -1,0 +1,9 @@
+name = Elevate API Module
+description = Main Functionality to access Ellusian's Elevate API. Required Module for Elevate-Populate and Elevate-Cron.
+core = 7.x
+package = Services
+configure = admin/config/services/elevate
+
+dependencies[] = composer_manager
+
+files[] = elevate_core.module
