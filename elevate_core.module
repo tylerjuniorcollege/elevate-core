@@ -6,16 +6,151 @@
      * Copyright (c) 2015-2016 Tyler Junior College.
      * See LICENSE file for MIT License information.
      ***/
-     
+         
+    use ElevateAPI\Client as ElevateClient;
+    use ElevateAPI\Query\QueryAbstract;
      
     /**
      * Implementing hook_help
      **/
     
     function elevate_core_help($path, $arg) {
-        if($path == "admin/help#elevate_core") {
-            return t('Main Settings and Functionality to access Ellusian Elevate API.');
+        switch($path) {
+            case "admin/help#elevate_core":
+                return t('Main Settings and Functionality to access Ellusian Elevate API.');
+                break;
+            case "admin/config/services/elevate":
+                return include "help/index.php";
+                break;
+            case "admin/config/services/elevate/populate":
+                break;
+            case "admin/config/services/elevate/settings":
+                break;
+            case "admin/config/services/elevate/cron":
+                break;
         }
     }
     
+    /**
+     * Implements hook_menu
+     **/
+    function elevate_core_menu() {
+        $items = array();
+        $items['admin/config/services/elevate'] = array(
+            'title' => 'Elevate API',
+            'description' => 'Populate new Programs and Courses into Drupal from Elevate',
+            //'type' => MENU_LOCAL_TASK,
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('elevate_core_admin'),
+            'access arguments' => array('administer elevate'),
+            //'file' => 'includes/elevate_core.admin.php'
+        );
+        $items['admin/config/services/elevate/populate'] = array(
+            'title' => 'Populate',
+            'description' => 'Populate Programs/Courses Content Type with data from the Elevate API',
+            'type' => MENU_LOCAL_TASK,
+            'weight' => 5,
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('elevate_core_admin_populate'),
+            'access arguments' => array('administer elevate'),
+            'file' => 'includes/elevate_core.admin.php'
+        );
+        $items['admin/config/services/elevate/settings'] = array(
+            'title' => 'Settings',
+            'description' => 'Elevate API Settings',
+            'type' => MENU_LOCAL_TASK,
+            'weight' => 20,
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('elevate_core_admin_settings'),
+            'access arguments' => array('administer elevate')
+        );
+        $items['admin/config/services/elevate/cron'] = array(
+            'title' => 'Cron Settings',
+            'description' => 'Allows for updating content via the Live Link',
+            'type' => MENU_LOCAL_TASK,
+            'weight' => 10,
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('elevate_core_admin_cron'),
+            'access arguments' => array('administer elevate'),
+            'file' => 'includes/elevate_core.cron.php',
+            'file path' => drupal_get_path('module', 'elevate_core')
+        );
+        return $items;
+    }
     
+    /**
+     * Implements hook_permissions
+     **/
+    function elevate_core_permission() {
+        return array(
+            'administer elevate' => array(
+                'title' => t('Administer Elevate'),
+                'description' => t('Allows user to run actions and edit the settings for the Elevate API Module')
+            )
+        );
+    }
+    
+    /**
+     * elevate_core Settings function
+     **/
+    function elevate_core_admin_settings($form, &$form_state) {
+        // Url Field.
+        $form['elevate_core_url'] = array(
+            '#type' => 'textfield',
+            '#title' => t('API URL'),
+            '#description' => t('The URL for the API Endpoint <i>without the <strong>solar.qll_web*</strong> part</i>'),
+            '#size' => 120,
+            '#maxlength' => 255,
+            '#required' => TRUE,
+            '#default_value' => variable_get('elevate_core_url', 'http://example.com')
+        );
+        
+        $form['elevate_core_auth_key'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Auth Key'),
+            '#description' => t('This is the auth key that was set in Elevate for API Access'),
+            '#size' => 60,
+            '#maxlength' => 120,
+            '#default_value' => variable_get('elevate_core_auth_key', 'example')
+        );
+        
+        $form['elevate_core_security_type'] = array(
+            '#type' => 'radios',
+            '#title' => t('Security Type'),
+            '#description' => t('The Security Type that was set in Elevate for API Access'),
+            '#options' => array(
+                'key' => t('Key'),
+                'md5' => t('MD5'),
+                'sha1' => t('SHA1')
+            ),
+            '#default_value' => variable_get('elevate_core_security_type', 'key')
+        );
+        
+        return system_settings_form($form);
+    }
+    
+    function elevate_core_admin($form, &$form_state) {
+        return $form;
+    }
+    
+    /**
+     * elevate_core main functionality - Client
+     * This enables the ability for the ElevateAPI Client to be used with the module.
+     *
+     * elevate_client(QueryAbstract $query);
+     * @return Object SimpleXMLElement with content from the API call.
+     **/
+    function elevate_client(QueryAbstract $query) {
+        $client =  new ElevateClient(variable_get('elevate_core_url'), variable_get('elevate_core_auth_key'), variable_get('elevate_core_security_type'));
+        
+        return $client->get($query);
+    }
+    
+    /**
+     * elevate_core processing function - Program Generator
+     *
+     * elevate_generate_programs() - This will process and yield the values in the xml document.
+     **/
+    function elevate_generate_programs() {
+        
+    }
